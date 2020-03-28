@@ -1,15 +1,15 @@
 """Main module."""
 
-import requests
+import csv
 import io
 import os
-import csv
-import json
+
+import requests
 
 
 class Client(object):
     """
-    A thin wrapper to the python requests library 
+    A thin wrapper to the python requests library
     """
     def __init__(self, verbose=False):
         self.verbose = verbose
@@ -55,7 +55,6 @@ class Parser(object):
         return False
 
 
-
 class TimeSeriesParser(Parser):
 
     def __init__(self, confirmed_data_file=None, verbose=None):
@@ -70,7 +69,7 @@ class TimeSeriesParser(Parser):
 
     def calculate_multiplication_factor(self, data_array, today_index, yesterday_index, index_range):
         if today_index > index_range:
-            return int(data_array[today_index])/int(data_array[yesterday_index])
+            return int(data_array[today_index]) / int(data_array[yesterday_index])
         else:
             return 0
 
@@ -78,43 +77,40 @@ class TimeSeriesParser(Parser):
         with open(self.data_file, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
             cnt = 0
-            final_csv_data=""
-            header_row=""
-            filename='{}.csv'.format(country_region)
+            final_csv_data = ""
+            header_row = ""
+            filename = '{}.csv'.format(country_region)
             for row in datareader:
                 if cnt == 0:
-                    final_csv_data="date,count,new cases,multiplication factor\n"
+                    final_csv_data = "date,count,new cases,multiplication factor\n"
                     header_row = row[0].split(',')
                 else:
                     try:
                         data_array = row[0].split(',')
-                        # print(data_array[0].lower())
-                        # print(data_array)
                         if data_array[1].lower() == country_region.lower():
-                            index_range = [i for i in range(360) if i > data_offset  ]
-                            # print(index_range)
+                            index_range = [i for i in range(360) if i > data_offset]
                             for index in index_range:
                                 month = int(header_row[index].split('/')[0])
                                 day = int(header_row[index].split('/')[1])
-                                new_cases = self.calculate_new_cases(data_array, index, index-1, index_range[0])
-                                multiplication_factor = self.calculate_multiplication_factor(data_array, index, index-1, index_range[0])
-                                # print(multiplication_factor)
-                                final_csv_data+="{}-{:02d}-{:02d},{},+{},{:.3f}\n".format("2020", month, day, data_array[index], new_cases, multiplication_factor)
+                                new_cases = self.calculate_new_cases(data_array, index, index - 1, index_range[0])
+                                multiplication_factor = self.calculate_multiplication_factor(data_array, index, index - 1, index_range[0])
+                                final_csv_data += "{}-{:02d}-{:02d},{},+{},{:.3f}\n".format("2020", month, day, data_array[index], new_cases, multiplication_factor)
                     except IndexError:
                         pass
-                cnt+=1
+                cnt += 1
             self.write_csv_file(filename, final_csv_data)
+
 
 class DailyReportsParser(Parser):
 
     def __init__(self, verbose=None):
         super().__init__(verbose=verbose)
-        self.parsed_lines=[]
+        self.parsed_lines = []
 
     def set_cachefile(self, filename):
         self.data_file = filename
 
-    def add_line(self, date='date', count='confirmed',new_cases='new cases',multiplication_factor='multiplication factor'):
+    def add_line(self, date='date', count='confirmed', new_cases='new cases', multiplication_factor='multiplication factor'):
         if type(multiplication_factor) == type(''):
             self.parsed_lines.append("{},{},{},{}".format(date, count, new_cases, multiplication_factor))
         else:
@@ -124,13 +120,12 @@ class DailyReportsParser(Parser):
         return int(today_cnt) - int(yesterday_cnt)
 
     def calculate_multiplication_factor(self, today_cnt, yesterday_cnt):
-        return int(today_cnt)/int(yesterday_cnt)
+        return int(today_cnt) / int(yesterday_cnt)
 
     def parse(self, date_str, needle_array, filename):
         """ needle_array is the thing we are looking for """
         if len(self.parsed_lines) == 0:
-            self.add_line() # add the header line
-
+            self.add_line()  # add the header line
 
         with open(filename, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
@@ -143,14 +138,14 @@ class DailyReportsParser(Parser):
                         if data_array[index] != needle_array[index]:
                             found_it = False
                     if found_it:
-                        offset_to_confirmed=7
-                        yesterdays_cnt=0
-                        new_cases=0
-                        multiplication_factor=0
+                        offset_to_confirmed = 7
+                        yesterdays_cnt = 0
+                        new_cases = 0
+                        multiplication_factor = 0
                         if len(self.parsed_lines) > 1:
-                            yesterdays_cnt =self.parsed_lines[-1].split(',')[1]
+                            yesterdays_cnt = self.parsed_lines[-1].split(',')[1]
                             new_cases = self.calculate_new_cases(data_array[offset_to_confirmed], yesterdays_cnt)
-                            multiplication_factor = self.calculate_multiplication_factor(data_array[offset_to_confirmed], yesterdays_cnt )
+                            multiplication_factor = self.calculate_multiplication_factor(data_array[offset_to_confirmed], yesterdays_cnt)
                         self.add_line(date_str, data_array[offset_to_confirmed], new_cases, multiplication_factor)
 
                 except IndexError:
@@ -161,13 +156,11 @@ class DailyReportsParser(Parser):
         for line in self.parsed_lines:
             final_data += "{}\n".format(line)
 
-        filename="_".join(filename_tokes)
+        filename = "_".join(filename_tokes)
         self.write_csv_file("{}.csv".format(filename), final_data)
 
     def remove_csv_file(self, filename_tokes):
-        filename="_".join(filename_tokes)
-        filename="{}.csv".format(filename)
+        filename = "_".join(filename_tokes)
+        filename = "{}.csv".format(filename)
         if os.path.isfile(filename):
             os.unlink(filename)
-
-

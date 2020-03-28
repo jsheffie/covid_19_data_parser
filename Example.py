@@ -69,7 +69,7 @@ def process_daily_data():
                    "03-25-2020",
                    "03-26-2020",
                    "03-27-2020"]
-                   # "03-28-2020",
+                   # "03-28-2020"]
                    # "03-29-2020",
                    # "03-30-2020",
                    # "03-31-2020" ]
@@ -99,13 +99,13 @@ def process_daily_data():
     # 48453,Travis,Texas,US
     # 48491,Williamson,Texas,US
     # needle_array = 
-    needle_arrays = [['48453','Travis','Texas','US'],
-                     ['48491','Williamson','Texas','US'],
-                     ['48113','Dallas','Texas','US'],
-                     ['36059','Nassau','New York','US'],
-                     ['36103','Suffolk','New York','US'],
-                     ['36061','New York City','New York','US'],
-                     ['22071','Orleans', 'Louisiana', 'US']
+    needle_arrays = [['48453', 'Travis', 'Texas', 'US'],
+                     ['48491', 'Williamson', 'Texas', 'US'],
+                     ['48113', 'Dallas', 'Texas', 'US'],
+                     ['36059', 'Nassau', 'New York', 'US'],
+                     ['36103', 'Suffolk', 'New York', 'US'],
+                     ['36061', 'New York City', 'New York', 'US'],
+                     ['22071', 'Orleans', 'Louisiana', 'US']
                      ]
     for needle_array in needle_arrays:
         daily_parser = DailyReportsParser()
