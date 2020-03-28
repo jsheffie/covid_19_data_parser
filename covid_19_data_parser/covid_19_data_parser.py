@@ -89,8 +89,9 @@ class Parser(object):
                                 month = int(header_row[index].split('/')[0])
                                 day = int(header_row[index].split('/')[1])
                                 new_cases = self.calculate_new_cases(data_array, index, index-1, index_range[0])
-                                multiplication_factor = self.calculate_multiplication_factor(data_array, index, index-1 index_range[0])
-                                final_csv_data+="{}-{:02d}-{:02d},{},+{},{}\n".format("2020", month, day, data_array[index], new_cases, multiplication_factor)
+                                multiplication_factor = self.calculate_multiplication_factor(data_array, index, index-1, index_range[0])
+                                print(multiplication_factor)
+                                final_csv_data+="{}-{:02d}-{:02d},{},+{},{:.3f}\n".format("2020", month, day, data_array[index], new_cases, multiplication_factor)
                     except IndexError:
                         pass
                 cnt+=1
