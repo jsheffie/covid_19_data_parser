@@ -98,15 +98,23 @@ def process_daily_data():
     # FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key
     # 48453,Travis,Texas,US
     # 48491,Williamson,Texas,US
-    # needle_array = ['48453','Travis','Texas','US']
-    needle_array = ['48491','Williamson','Texas','US']
-    # loop thought them again, this time calcaliting the data
-                        # FIPS  Admin2    State   Country
-    for date_str in date_range:
-        filename = "{}/{}.csv".format(daily_data_dir, date_str)
-        daily_parser.parse(date_str, needle_array, filename )
+    # needle_array = 
+    needle_arrays = [['48453','Travis','Texas','US'],
+                     ['48491','Williamson','Texas','US'],
+                     ['48113','Dallas','Texas','US'],
+                     ['36059','Nassau','New York','US'],
+                     ['36103','Suffolk','New York','US'],
+                     ['36061','New York City','New York','US'],
+                     ['22071','Orleans', 'Louisiana', 'US']
+                     ]
+    for needle_array in needle_arrays:
+        # loop thought them again, this time calcaliting the data
+                            # FIPS  Admin2    State   Country
+        for date_str in date_range:
+            filename = "{}/{}.csv".format(daily_data_dir, date_str)
+            daily_parser.parse(date_str, needle_array, filename )
 
-    daily_parser.write_csv(needle_array)
+        daily_parser.write_csv(needle_array)
 
     # import json
     # print(json.dumps(daily_parser.parsed_lines, indent=4))
