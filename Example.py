@@ -108,12 +108,14 @@ def process_daily_data():
                      ['22071','Orleans', 'Louisiana', 'US']
                      ]
     for needle_array in needle_arrays:
+        daily_parser = DailyReportsParser()
         # loop thought them again, this time calcaliting the data
                             # FIPS  Admin2    State   Country
         for date_str in date_range:
             filename = "{}/{}.csv".format(daily_data_dir, date_str)
             daily_parser.parse(date_str, needle_array, filename )
 
+        daily_parser.remove_csv_file(needle_array)
         daily_parser.write_csv(needle_array)
 
     # import json

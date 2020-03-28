@@ -164,4 +164,10 @@ class DailyReportsParser(Parser):
         filename="_".join(filename_tokes)
         self.write_csv_file("{}.csv".format(filename), final_data)
 
+    def remove_csv_file(self, filename_tokes):
+        filename="_".join(filename_tokes)
+        filename="{}.csv".format(filename)
+        if os.path.isfile(filename):
+            os.unlink(filename)
+
 
