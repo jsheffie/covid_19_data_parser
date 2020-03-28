@@ -1,0 +1,7 @@
+# This requirements file lists all third-party dependencies for this project.
+#
+# Run 'pip3 install -r requirements.txt -t lib/' to install these dependencies
+# in `lib/` subdirectory.
+
+requests
+
