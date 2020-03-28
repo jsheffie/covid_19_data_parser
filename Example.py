@@ -12,25 +12,107 @@ sys.path[0:0] = ["{}/lib".format(cwd)]
 # Add '/huvr_api_client' to the path to make this runnable out of the source tree
 sys.path[0:0] = ["{}/covid_19_data_parser".format(cwd)]
 
-from covid_19_data_parser import Client, Parser
+from covid_19_data_parser import Client, TimeSeriesParser, DailyReportsParser
+
+def process_time_series_data():
+    time_series_covid19_confirmed_global_csv_url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+    filename = 'downloads/confirmed_global_data.csv'
+    ts_parser = TimeSeriesParser(confirmed_data_file=filename)
+    if not ts_parser.cached_csv():
+        print("Fetching csv file from {}".format(time_series_covid19_confirmed_global))
+        client = Client()
+        ( res_code, data ) = client.get(time_series_covid19_confirmed_global_csv_url)
+        if res_code == 200:
+            print("Successfully Downloaded data {}".format(len(data)))
+            res = ts_parser.write_csv_file(filename, data)
+            if res:
+                print("Successfully Wrote datafile {}".format(filename))
+
+    print("Parsing Time Series CSV data")
+    ts_parser.parse('US')
+
+def process_daily_data():
+    """
+    so here we want to agressivly cache the data ( since it wont change after a file has been fetched )
+    """
+    base_url="https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports" # 03-27-2020.csv
+    daily_data_dir = 'daily_data'
+
+    daily_parser = DailyReportsParser()
+
+    # TODO: make this fancy with datetime, and calendar later.. or not
+    date_range = [ 
+                   # "03-01-2020", 
+                   # "03-02-2020",
+                   # "03-03-2020",
+                   # "03-04-2020",
+                   # "03-05-2020",
+                   # "03-06-2020",
+                   # "03-07-2020",
+                   # "03-08-2020",
+                   # "03-09-2020",
+                   # "03-10-2020",
+                   # "03-11-2020",
+                   # "03-12-2020",
+                   # "03-13-2020",
+                   # "03-14-2020",
+                   # "03-15-2020",
+                   # "03-16-2020",
+                   # "03-17-2020",
+                   # "03-18-2020",
+                   # "03-19-2020",
+                   # "03-20-2020",
+                   # "03-21-2020",
+                   "03-22-2020",  # New Data Format ( more detailed data )
+                   "03-23-2020",
+                   "03-24-2020",
+                   "03-25-2020",
+                   "03-26-2020",
+                   "03-27-2020"]
+                   # "03-28-2020",
+                   # "03-29-2020",
+                   # "03-30-2020",
+                   # "03-31-2020" ]
+
+    # Download the data
+    for date_str in date_range:
+        filename = "{}/{}.csv".format(daily_data_dir, date_str)
+        download_url = "{}/{}.csv".format(base_url, date_str)
+        daily_parser.set_cachefile(filename)
+        if not daily_parser.cached_csv():
+            print("Fetching csv file from {}".format(filename))
+            client = Client()
+            ( res_code, data ) = client.get(download_url)
+            if res_code == 200:
+                print("Successfully Downloaded data {}".format(len(data)))
+                res = daily_parser.write_csv_file(filename, data)
+                if res:
+                    print("Successfully Wrote datafile {}".format(filename))
+            else:
+                print("ERROR: {}".format(res_code))
+                print(data)
+
+    # Up to 3/21/2020 the format was this
+    # Province/State,Country/Region,Last Update,Confirmed,Deaths,Recovered,Latitude,Longitude
+    # on 3/22 it change to this
+    # FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key
+    # 48453,Travis,Texas,US
+    # 48491,Williamson,Texas,US
+    # needle_array = ['48453','Travis','Texas','US']
+    needle_array = ['48491','Williamson','Texas','US']
+    # loop thought them again, this time calcaliting the data
+                        # FIPS  Admin2    State   Country
+    for date_str in date_range:
+        filename = "{}/{}.csv".format(daily_data_dir, date_str)
+        daily_parser.parse(date_str, needle_array, filename )
+
+    daily_parser.write_csv(needle_array)
+
+    # import json
+    # print(json.dumps(daily_parser.parsed_lines, indent=4))
 
 
 
-
-# time_series_covid19_confirmed_global_csv_url = "https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-time_series_covid19_confirmed_global_csv_url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-filename = 'downloads/confirmed_global_data.csv'
-
-parser = Parser(confirmed_data_file=filename)
-if not parser.cached_csv():
-    print("Fetching csv file from {}".format(time_series_covid19_confirmed_global))
-    client = Client()
-    ( res_code, data ) = client.get(time_series_covid19_confirmed_global_csv_url)
-    if res_code == 200:
-        print("Successfully Downloaded data {}".format(len(data)))
-        res = parser.write_csv_file(filename, data)
-        if res:
-            print("Successfully Wrote datafile {}".format(filename))
-
-print("Parsing CSV data")
-parser.parse_time_series('US')
+if __name__ == '__main__':
+    # process_time_series_data()
+    process_daily_data()

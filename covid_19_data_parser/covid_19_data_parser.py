@@ -4,6 +4,7 @@ import requests
 import io
 import os
 import csv
+import json
 
 
 class Client(object):
@@ -25,14 +26,13 @@ class Client(object):
         if response.status_code == 200:
             return (200, response.text)
         else:
-            return (response.status_code, json.loads(response.text))
+            return (response.status_code, response.text)
         return response
 
 
 class Parser(object):
-
-    def __init__(self, confirmed_data_file=None, verbose=None):
-        self.confirmed_data_file = confirmed_data_file
+    def __init__(self, verbose=None):
+        self.verbose = verbose
 
     def makedirs(self, filename):
         toks = filename.split('/')
@@ -42,7 +42,7 @@ class Parser(object):
             os.makedirs(dir_name)
 
     def cached_csv(self):
-        return os.path.isfile(self.confirmed_data_file)
+        return os.path.isfile(self.data_file)
 
     def write_csv_file(self, filename, data):
 
@@ -53,6 +53,15 @@ class Parser(object):
             return True
 
         return False
+
+
+
+class TimeSeriesParser(Parser):
+
+    def __init__(self, confirmed_data_file=None, verbose=None):
+        # super().__init__()
+        self.data_file = confirmed_data_file
+
     def calculate_new_cases(self, data_array, today_index, yesterday_index, index_range):
         if today_index > index_range:
             return int(data_array[today_index]) - int(data_array[yesterday_index])
@@ -65,9 +74,8 @@ class Parser(object):
         else:
             return 0
 
-
-    def parse_time_series(self, country_region, data_offset=3):
-        with open(self.confirmed_data_file, newline='') as csvfile:
+    def parse(self, country_region, data_offset=3):
+        with open(self.data_file, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
             cnt = 0
             final_csv_data=""
@@ -90,9 +98,70 @@ class Parser(object):
                                 day = int(header_row[index].split('/')[1])
                                 new_cases = self.calculate_new_cases(data_array, index, index-1, index_range[0])
                                 multiplication_factor = self.calculate_multiplication_factor(data_array, index, index-1, index_range[0])
-                                print(multiplication_factor)
+                                # print(multiplication_factor)
                                 final_csv_data+="{}-{:02d}-{:02d},{},+{},{:.3f}\n".format("2020", month, day, data_array[index], new_cases, multiplication_factor)
                     except IndexError:
                         pass
                 cnt+=1
             self.write_csv_file(filename, final_csv_data)
+
+class DailyReportsParser(Parser):
+
+    def __init__(self, verbose=None):
+        super().__init__(verbose=verbose)
+        self.parsed_lines=[]
+
+    def set_cachefile(self, filename):
+        self.data_file = filename
+
+    def add_line(self, date='date', count='count',new_cases='new cases',multiplication_factor='multiplication factor'):
+        if type(multiplication_factor) == type(''):
+            self.parsed_lines.append("{},{},{},{}".format(date, count, new_cases, multiplication_factor))
+        else:
+            self.parsed_lines.append("{},{},+{},{:.3f}".format(date, count, new_cases, multiplication_factor))
+
+    def calculate_new_cases(self, today_cnt, yesterday_cnt):
+        return int(today_cnt) - int(yesterday_cnt)
+
+    def calculate_multiplication_factor(self, today_cnt, yesterday_cnt):
+        return int(today_cnt)/int(yesterday_cnt)
+
+    def parse(self, date_str, needle_array, filename):
+        """ needle_array is the thing we are looking for """
+        if len(self.parsed_lines) == 0:
+            self.add_line() # add the header line
+
+
+        with open(filename, newline='') as csvfile:
+            datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
+            for row in datareader:
+                try:
+                    data_array = row[0].split(',')
+                    found_it = True
+                    indexes = range(len(needle_array))
+                    for index in indexes:
+                        if data_array[index] != needle_array[index]:
+                            found_it = False
+                    if found_it:
+                        offset_to_confirmed=7
+                        yesterdays_cnt=0
+                        new_cases=0
+                        multiplication_factor=0
+                        if len(self.parsed_lines) > 1:
+                            yesterdays_cnt =self.parsed_lines[-1].split(',')[1]
+                            new_cases = self.calculate_new_cases(data_array[offset_to_confirmed], yesterdays_cnt)
+                            multiplication_factor = self.calculate_multiplication_factor(data_array[offset_to_confirmed], yesterdays_cnt )
+                        self.add_line(date_str, data_array[offset_to_confirmed], new_cases, multiplication_factor)
+
+                except IndexError:
+                    pass
+
+    def write_csv(self, filename_tokes):
+        final_data = ""
+        for line in self.parsed_lines:
+            final_data += "{}\n".format(line)
+
+        filename="_".join(filename_tokes)
+        self.write_csv_file("{}.csv".format(filename), final_data)
+
+
