@@ -114,7 +114,7 @@ class DailyReportsParser(Parser):
     def set_cachefile(self, filename):
         self.data_file = filename
 
-    def add_line(self, date='date', count='count',new_cases='new cases',multiplication_factor='multiplication factor'):
+    def add_line(self, date='date', count='confirmed',new_cases='new cases',multiplication_factor='multiplication factor'):
         if type(multiplication_factor) == type(''):
             self.parsed_lines.append("{},{},{},{}".format(date, count, new_cases, multiplication_factor))
         else:
