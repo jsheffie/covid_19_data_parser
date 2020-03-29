@@ -54,12 +54,36 @@ class Parser(object):
 
         return False
 
+    def set_cachefile(self, filename):
+        self.data_file = filename
+
+    def get_data(self, download_url, filename):
+        self.set_cachefile(filename)
+        if not self.cached:
+            # Force-refetching
+            if os.path.isfile(filename):
+                os.unlink(filename)
+
+        if not self.cached_csv():
+            print("Fetching csv file from {}".format(filename))
+            self.client = Client()
+            (res_code, data) = self.client.get(download_url)
+            if res_code == 200:
+                print("Successfully Downloaded data {}".format(len(data)))
+                res = self.write_csv_file(filename, data)
+                if res:
+                    print("Successfully Wrote datafile {}".format(filename))
+            else:
+                print("ERROR: {}".format(res_code))
+                print(data)
+
 
 class TimeSeriesParser(Parser):
 
-    def __init__(self, confirmed_data_file=None, verbose=None):
-        # super().__init__()
-        self.data_file = confirmed_data_file
+    def __init__(self, verbose=None, use_cachfile=True):
+        super().__init__(verbose=verbose)
+        self.client = None
+        self.cached = use_cachfile
 
     def calculate_new_cases(self, data_array, today_index, yesterday_index, index_range):
         if today_index > index_range:
@@ -115,9 +139,6 @@ class DailyReportsParser(Parser):
         self.client = None
         self.cached = use_cachfile
 
-    def set_cachefile(self, filename):
-        self.data_file = filename
-
     def add_line(self, date='date', count='confirmed', new_cases='new cases', multiplication_factor='multiplication factor'):
         try:
             self.parsed_lines.append("{},{},+{},{:.3f}".format(date, count, new_cases, multiplication_factor))
@@ -172,23 +193,3 @@ class DailyReportsParser(Parser):
         filename = "{}.csv".format(filename)
         if os.path.isfile(filename):
             os.unlink(filename)
-
-    def get_data(self, download_url, filename):
-        self.set_cachefile(filename)
-        if not self.cached:
-            # Force-refetching
-            if os.path.isfile(filename):
-                os.unlink(filename)
-
-        if not self.cached_csv():
-            print("Fetching csv file from {}".format(filename))
-            self.client = Client()
-            (res_code, data) = self.client.get(download_url)
-            if res_code == 200:
-                print("Successfully Downloaded data {}".format(len(data)))
-                res = self.write_csv_file(filename, data)
-                if res:
-                    print("Successfully Wrote datafile {}".format(filename))
-            else:
-                print("ERROR: {}".format(res_code))
-                print(data)
