@@ -33,6 +33,7 @@ class Client(object):
 class Parser(object):
     def __init__(self, verbose=None):
         self.verbose = verbose
+        self.data_directory = 'data_output'
 
     def makedirs(self, filename):
         toks = filename.split('/')
@@ -58,6 +59,7 @@ class Parser(object):
         self.data_file = filename
 
     def get_data(self, download_url, filename):
+        filename = self.sanitize_filename(filename)
         self.set_cachefile(filename)
         if not self.cached:
             # Force-refetching
@@ -76,6 +78,9 @@ class Parser(object):
             else:
                 print("ERROR: {}".format(res_code))
                 print(data)
+
+    def sanitize_filename(self, filename):
+        return '_'.join(filename.split(' '))
 
 
 class TimeSeriesParser(Parser):
@@ -103,7 +108,7 @@ class TimeSeriesParser(Parser):
             cnt = 0
             final_csv_data = ""
             header_row = ""
-            filename = '{}.csv'.format(country_region)
+            filename = '{}/{}.csv'.format(self.data_directory, country_region)
             for row in datareader:
                 if cnt == 0:
                     final_csv_data = "date,count,new cases,multiplication factor\n"
@@ -153,6 +158,8 @@ class DailyReportsParser(Parser):
 
     def parse(self, date_str, needle_array, filename):
         """ needle_array is the thing we are looking for """
+        filename = self.sanitize_filename(filename)
+
         if len(self.parsed_lines) == 0:
             self.add_line()  # add the header line
 
@@ -180,16 +187,23 @@ class DailyReportsParser(Parser):
                 except IndexError:
                     pass
 
+    def remove_fips_element(self, needle_array):
+        return needle_array[1:]
+
     def write_csv(self, filename_tokes):
+        filename_tokes = self.remove_fips_element(filename_tokes)
         final_data = ""
         for line in self.parsed_lines:
             final_data += "{}\n".format(line)
 
         filename = "_".join(filename_tokes)
-        self.write_csv_file("{}.csv".format(filename), final_data)
+        filename = self.sanitize_filename(filename)
+        self.write_csv_file("{}/{}.csv".format(self.data_directory, filename), final_data)
 
     def remove_csv_file(self, filename_tokes):
+        filename_tokes = self.remove_fips_element(filename_tokes)
         filename = "_".join(filename_tokes)
-        filename = "{}.csv".format(filename)
+        filename = self.sanitize_filename(filename)
+        filename = "{}/{}.csv".format(self.data_directory, filename)
         if os.path.isfile(filename):
             os.unlink(filename)
