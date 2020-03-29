@@ -22,7 +22,7 @@ if __name__ == '__main__':
     if not ts_parser.cached_csv():
         print("Fetching csv file from {}".format(time_series_covid19_confirmed_global_csv_url))
         client = Client()
-        ( res_code, data ) = client.get(time_series_covid19_confirmed_global_csv_url)
+        (res_code, data) = client.get(time_series_covid19_confirmed_global_csv_url)
         if res_code == 200:
             print("Successfully Downloaded data {}".format(len(data)))
             res = ts_parser.write_csv_file(filename, data)

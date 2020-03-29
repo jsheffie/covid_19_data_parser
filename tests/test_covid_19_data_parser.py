@@ -5,7 +5,7 @@
 
 import unittest
 
-from covid_19_data_parser import covid_19_data_parser
+# from covid_19_data_parser import covid_19_data_parser
 
 
 class TestCovid_19_data_parser(unittest.TestCase):

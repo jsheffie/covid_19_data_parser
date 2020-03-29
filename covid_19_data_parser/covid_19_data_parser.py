@@ -111,10 +111,10 @@ class DailyReportsParser(Parser):
         self.data_file = filename
 
     def add_line(self, date='date', count='confirmed', new_cases='new cases', multiplication_factor='multiplication factor'):
-        if type(multiplication_factor) == type(''):
-            self.parsed_lines.append("{},{},{},{}".format(date, count, new_cases, multiplication_factor))
-        else:
+        try:
             self.parsed_lines.append("{},{},+{},{:.3f}".format(date, count, new_cases, multiplication_factor))
+        except ValueError:
+            self.parsed_lines.append("{},{},{},{}".format(date, count, new_cases, multiplication_factor))
 
     def calculate_new_cases(self, today_cnt, yesterday_cnt):
         return int(today_cnt) - int(yesterday_cnt)
