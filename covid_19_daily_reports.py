@@ -14,7 +14,7 @@ sys.path[0:0] = ["{}/covid_19_data_parser".format(cwd)]
 
 from covid_19_data_parser import Client, DailyReportsParser
 
-def process_daily_data():
+if __name__ == '__main__':
     """
     so here we want to agressivly cache the data ( since it wont change after a file has been fetched )
     """
@@ -51,8 +51,8 @@ def process_daily_data():
                    "03-24-2020",
                    "03-25-2020",
                    "03-26-2020",
-                   "03-27-2020"]
-                   # "03-28-2020"]
+                   "03-27-2020",
+                   "03-28-2020"]
                    # "03-29-2020",
                    # "03-30-2020",
                    # "03-31-2020" ]
@@ -103,8 +103,3 @@ def process_daily_data():
 
     # import json
     # print(json.dumps(daily_parser.parsed_lines, indent=4))
-
-
-
-if __name__ == '__main__':
-    process_daily_data()
