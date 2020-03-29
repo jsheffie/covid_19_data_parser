@@ -207,3 +207,31 @@ class DailyReportsParser(Parser):
         filename = "{}/{}.csv".format(self.data_directory, filename)
         if os.path.isfile(filename):
             os.unlink(filename)
+
+    def build_needle_array(self, country='US', column='Confirmed', high_watermark=1000):
+        # Some example needles
+        # needle_arrays = [['48453', 'Travis', 'Texas', 'US'],
+        #                  ['48491', 'Williamson', 'Texas', 'US']]
+        needle_arrays = []
+        num_lookup = {
+            'Confirmed': 7,
+            'Deaths': 8,
+            'Recovered': 9
+        }
+        self.data_file
+        with open(self.data_file, newline='') as csvfile:
+            datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
+            for row in datareader:
+                try:
+                    data_array = row[0].split(',')
+                    found_it = False
+                    if data_array[3] == country:
+                        found_it = True
+                    if found_it:
+                        # What's its count
+                        offset_to_count = num_lookup[column]
+                        if int(data_array[offset_to_count]) >= int(high_watermark):
+                            needle_arrays.append([data_array[0], data_array[1], data_array[2], data_array[3]])
+                except IndexError:
+                    pass
+        return needle_arrays
