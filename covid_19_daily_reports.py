@@ -12,12 +12,9 @@ sys.path[0:0] = ["{}/lib".format(cwd)]
 # Add '/huvr_api_client' to the path to make this runnable out of the source tree
 sys.path[0:0] = ["{}/covid_19_data_parser".format(cwd)]
 
-from covid_19_data_parser import Client, DailyReportsParser
+from covid_19_data_parser import DailyReportsParser
 
 if __name__ == '__main__':
-    """
-    so here we want to agressivly cache the data ( since it wont change after a file has been fetched )
-    """
     base_url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports"  # 03-27-2020.csv
     daily_data_dir = 'daily_data'
 
@@ -32,23 +29,10 @@ if __name__ == '__main__':
                   "03-27-2020",
                   "03-28-2020"]
 
-    # Download the data
     for date_str in date_range:
         filename = "{}/{}.csv".format(daily_data_dir, date_str)
         download_url = "{}/{}.csv".format(base_url, date_str)
-        daily_parser.set_cachefile(filename)
-        if not daily_parser.cached_csv():
-            print("Fetching csv file from {}".format(filename))
-            client = Client()
-            (res_code, data) = client.get(download_url)
-            if res_code == 200:
-                print("Successfully Downloaded data {}".format(len(data)))
-                res = daily_parser.write_csv_file(filename, data)
-                if res:
-                    print("Successfully Wrote datafile {}".format(filename))
-            else:
-                print("ERROR: {}".format(res_code))
-                print(data)
+        daily_parser.get_data(download_url, filename)
 
     # The data formats are covered in this issue ( format changed on 03/21/2020 )
     # https://github.com/jsheffie/covid_19_data_parser/issues/1
@@ -68,6 +52,3 @@ if __name__ == '__main__':
 
         daily_parser.remove_csv_file(needle_array)
         daily_parser.write_csv(needle_array)
-
-    # import json
-    # print(json.dumps(daily_parser.parsed_lines, indent=4))
