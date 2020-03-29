@@ -102,10 +102,18 @@ class TimeSeriesParser(Parser):
 
 
 class DailyReportsParser(Parser):
+    """
+    This module agressivly cache's the data ( via filesystem csv files)
+    Since the daily data won't ( in theory ) change after a file has been fetched.
+    There is a module init attribure 'use_cachfile' to change the default behavior.
+    However, the nice thing to do is use cache.
+    """
 
-    def __init__(self, verbose=None):
+    def __init__(self, verbose=None, use_cachfile=True):
         super().__init__(verbose=verbose)
         self.parsed_lines = []
+        self.client = None
+        self.cached = use_cachfile
 
     def set_cachefile(self, filename):
         self.data_file = filename
@@ -164,3 +172,23 @@ class DailyReportsParser(Parser):
         filename = "{}.csv".format(filename)
         if os.path.isfile(filename):
             os.unlink(filename)
+
+    def get_data(self, download_url, filename):
+        self.set_cachefile(filename)
+        if not self.cached:
+            # Force-refetching
+            if os.path.isfile(filename):
+                os.unlink(filename)
+
+        if not self.cached_csv():
+            print("Fetching csv file from {}".format(filename))
+            self.client = Client()
+            (res_code, data) = self.client.get(download_url)
+            if res_code == 200:
+                print("Successfully Downloaded data {}".format(len(data)))
+                res = self.write_csv_file(filename, data)
+                if res:
+                    print("Successfully Wrote datafile {}".format(filename))
+            else:
+                print("ERROR: {}".format(res_code))
+                print(data)
