@@ -35,7 +35,7 @@ if __name__ == '__main__':
         daily_parser.get_data(download_url, filename)
         if date_str == date_range[-1]:
             # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
-            needle_arrays = daily_parser.build_needle_array(country='US', column='Confirmed', high_watermark=1000)
+            needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
 
     for needle_array in needle_arrays:
         daily_parser = DailyReportsParser()

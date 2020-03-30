@@ -141,6 +141,7 @@ class DailyReportsParser(Parser):
     def __init__(self, verbose=None, use_cachfile=True):
         super().__init__(verbose=verbose)
         self.parsed_lines = []
+        self.parsed_lat_lng_lines = {}
         self.client = None
         self.cached = use_cachfile
 
@@ -187,6 +188,37 @@ class DailyReportsParser(Parser):
                 except IndexError:
                     pass
 
+    def parse_lat_long_counts(self, date_str, needle_array, filename):
+        filename = self.sanitize_filename(filename)
+
+        with open(filename, newline='') as csvfile:
+            datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
+            for row in datareader:
+                try:
+                    data_array = row[0].split(',')
+                    found_it = True
+                    indexes = range(len(needle_array))
+                    for index in indexes:
+                        if data_array[index] != needle_array[index]:
+                            found_it = False
+                    if found_it:
+                        # TODO: remove magic
+                        offset_to_confirmed = 7
+                        offset_to_lat = 5
+                        offset_to_lng = 6
+                        unique_key = "_".join([str(data_array[offset_to_lat]), str(data_array[offset_to_lng])])
+                        if unique_key in self.parsed_lat_lng_lines:
+                            self.parsed_lat_lng_lines[unique_key]['count']+= int(data_array[offset_to_confirmed])
+                        else:
+                            if data_array[offset_to_lat] and  data_array[offset_to_lng] and data_array[offset_to_confirmed]:
+                                self.parsed_lat_lng_lines[unique_key] = { 'lat': data_array[offset_to_lat], 
+                                                                          'lng': data_array[offset_to_lng], 
+                                                                          'count': int(data_array[offset_to_confirmed])}
+
+                except IndexError:
+                    pass
+
+
     def remove_fips_element(self, needle_array):
         return needle_array[1:]
 
@@ -208,7 +240,7 @@ class DailyReportsParser(Parser):
         if os.path.isfile(filename):
             os.unlink(filename)
 
-    def build_needle_array(self, country='US', column='Confirmed', high_watermark=1000):
+    def build_needle_array(self, Country_Region='US', column='Confirmed', high_watermark=1000, Province_State=None):
         # Some example needles
         # needle_arrays = [['48453', 'Travis', 'Texas', 'US'],
         #                  ['48491', 'Williamson', 'Texas', 'US']]
@@ -225,8 +257,12 @@ class DailyReportsParser(Parser):
                 try:
                     data_array = row[0].split(',')
                     found_it = False
-                    if data_array[3] == country:
-                        found_it = True
+                    if Province_State:  # the more detailed filter
+                        if data_array[3] == Country_Region and data_array[2] == Province_State:
+                            found_it = True
+                    else:
+                        if data_array[3] == Country_Region:
+                            found_it = True
                     if found_it:
                         # What's its count
                         offset_to_count = num_lookup[column]
