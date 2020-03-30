@@ -5,7 +5,7 @@ import io
 import os
 
 import requests
-
+import json
 
 class Client(object):
     """
@@ -28,6 +28,25 @@ class Client(object):
         else:
             return (response.status_code, response.text)
         return response
+
+    def post(self, url, data={}):
+        """
+        Override the requests.put handler so that we can dynamically enable
+        logging, with our verbose flag.
+        """
+        headers = {
+            # TODO: figure out how to properly single source __version__ from __init__.py
+            'User-Agent': 'covid-19-dat-parser/{}'.format('0.1.0'),  # python-requests/2.22.0
+        }
+
+        if self.verbose:
+            print("Putting {}".format(url))
+            print(json.dumps(data, indent=4))
+        response = self.client.post(url, json=data, headers=headers)
+        if self.verbose:
+            print("Put {} {}".format(response.request.method, response.url))
+        return response
+
 
 
 class Parser(object):
