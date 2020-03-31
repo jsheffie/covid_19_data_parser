@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     daily_parser = DailyReportsParser()
 
-    date_range = ["03-29-2020"]
+    date_range = ["03-30-2020"]
 
     for date_str in date_range:
         filename = "{}/{}.csv".format(daily_data_dir, date_str)
@@ -39,6 +39,7 @@ if __name__ == '__main__':
     # sys.exit()
 
     counts = []
+    data_batch = []
     count = 0
     firebase_client = Client(verbose=True)
     for needle_array in needle_arrays:
@@ -58,16 +59,30 @@ if __name__ == '__main__':
                 # print("{"+" 'lat': {}, 'lng': {} 'weight': {}".format(elem['lat'], elem['lng'], elem['count']) + "}")
 
                 if True:
-                    detailed_data = { 'lat': float(elem['lat']), 'lng': float(elem['lng']), 'weight': elem['count'] }
+                    if elem['count'] < 31:
+                        detailed_data = { 'lat': float(elem['lat']), 'lng': float(elem['lng']) }
+                    else:
+                        detailed_data = { 'lat': float(elem['lat']), 'lng': float(elem['lng']), 'weight': elem['count'] }
                     detailed_data['sender'] = "t6eCnfpYUMPJgPvIBKWt9J9j1Kk2"  # anonymous
                     # detailed_data['sender'] = "xiMiIFIFbkTL7ZOD2Iso8R0zxlM2"  # jeff.sheffield
                     detailed_data['timestamp'] = int(datetime.now().strftime("%s%f"))/1000
-                    response = firebase_client.post('https://my-project-jeffield.firebaseio.com/clicks.json', data=detailed_data)
-
-                # if response.status_code != 200:
-                #     import json
-                #     print(json.dumps(response.text, indent=4))
+                    data_batch.append(detailed_data)
                 count += 1
+                if len(data_batch) > 50:
+                    response = firebase_client.post('https://my-project-jeffield.firebaseio.com/clicks.json', data=data_batch)
+                    if response.status_code != 200:
+                        print("ERROR: invalid status")
+                        import json
+                        print(json.dumps(response.text, indent=4))
+                        response.raise_for_status()
+                    data_batch = []
+
                 # if count > 100:
                 #     sys.exit()
     print(count)
+    response = firebase_client.post('https://my-project-jeffield.firebaseio.com/clicks.json', data=data_batch)
+    if response.status_code != 200:
+        print("ERROR: invalid status")
+        import json
+        print(json.dumps(response.text, indent=4))
+        response.raise_for_status()

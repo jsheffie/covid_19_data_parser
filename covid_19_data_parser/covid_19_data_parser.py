@@ -53,6 +53,20 @@ class Parser(object):
     def __init__(self, verbose=None):
         self.verbose = verbose
         self.data_directory = 'data_output'
+        self.CSV_LOOKUP_3232020 = {
+            'FIPS': 0,
+            'Admin2': 1,
+            'Province_State': 2,
+            'Country_Region': 3,
+            'Last_Update': 4, 
+            'Lat': 5,
+            'Long': 6,
+            'Confirmed': 7,
+            'Deaths': 8,
+            'Recovered': 9,
+            'Active': 10,
+            'Combined_Key': 11
+        }
 
     def makedirs(self, filename):
         toks = filename.split('/')
@@ -164,11 +178,11 @@ class DailyReportsParser(Parser):
         self.client = None
         self.cached = use_cachfile
 
-    def add_line(self, date='date', count='confirmed', new_cases='new cases', multiplication_factor='multiplication factor'):
+    def add_line(self, date='Date', confirmed='Confirmed', deaths='Deaths', recovered='Recovered', active='Active', new_cases='Confirmed New Cases', multiplication_factor='Confirmed multiplication factor'):
         try:
-            self.parsed_lines.append("{},{},+{},{:.3f}".format(date, count, new_cases, multiplication_factor))
+            self.parsed_lines.append("{},{},{},{},{},+{},{:.3f}".format(date, confirmed, deaths, recovered, active, new_cases, multiplication_factor))
         except ValueError:
-            self.parsed_lines.append("{},{},{},{}".format(date, count, new_cases, multiplication_factor))
+            self.parsed_lines.append("{},{},{},{},{},{},{}".format(date, confirmed,  deaths, recovered, active, new_cases, multiplication_factor))
 
     def calculate_new_cases(self, today_cnt, yesterday_cnt):
         return int(today_cnt) - int(yesterday_cnt)
@@ -179,7 +193,10 @@ class DailyReportsParser(Parser):
     def parse(self, date_str, needle_array, filename):
         """ needle_array is the thing we are looking for """
         filename = self.sanitize_filename(filename)
-
+        confirmed_index = self.CSV_LOOKUP_3232020['Confirmed']
+        deaths_index = self.CSV_LOOKUP_3232020['Deaths']
+        recovered_index = self.CSV_LOOKUP_3232020['Recovered']
+        active_index = self.CSV_LOOKUP_3232020['Active']
         if len(self.parsed_lines) == 0:
             self.add_line()  # add the header line
 
@@ -194,21 +211,23 @@ class DailyReportsParser(Parser):
                         if data_array[index] != needle_array[index]:
                             found_it = False
                     if found_it:
-                        offset_to_confirmed = 7
                         yesterdays_cnt = 0
                         new_cases = 0
                         multiplication_factor = 0
                         if len(self.parsed_lines) > 1:
                             yesterdays_cnt = self.parsed_lines[-1].split(',')[1]
-                            new_cases = self.calculate_new_cases(data_array[offset_to_confirmed], yesterdays_cnt)
-                            multiplication_factor = self.calculate_multiplication_factor(data_array[offset_to_confirmed], yesterdays_cnt)
-                        self.add_line(date_str, data_array[offset_to_confirmed], new_cases, multiplication_factor)
+                            new_cases = self.calculate_new_cases(data_array[confirmed_index], yesterdays_cnt)
+                            multiplication_factor = self.calculate_multiplication_factor(data_array[confirmed_index], yesterdays_cnt)
+                        self.add_line(date_str, data_array[confirmed_index], data_array[deaths_index], data_array[recovered_index], data_array[active_index], new_cases, multiplication_factor)
 
                 except IndexError:
                     pass
 
     def parse_lat_long_counts(self, date_str, needle_array, filename):
         filename = self.sanitize_filename(filename)
+        confirmed_index = self.CSV_LOOKUP_3232020['Confirmed']
+        offset_to_lat = self.CSV_LOOKUP_3232020['Lat']
+        offset_to_lng = self.CSV_LOOKUP_3232020['Long']
 
         with open(filename, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
@@ -222,17 +241,14 @@ class DailyReportsParser(Parser):
                             found_it = False
                     if found_it:
                         # TODO: remove magic
-                        offset_to_confirmed = 7
-                        offset_to_lat = 5
-                        offset_to_lng = 6
                         unique_key = "_".join([str(data_array[offset_to_lat]), str(data_array[offset_to_lng])])
                         if unique_key in self.parsed_lat_lng_lines:
-                            self.parsed_lat_lng_lines[unique_key]['count']+= int(data_array[offset_to_confirmed])
+                            self.parsed_lat_lng_lines[unique_key]['count']+= int(data_array[confirmed_index])
                         else:
-                            if data_array[offset_to_lat] and  data_array[offset_to_lng] and data_array[offset_to_confirmed]:
+                            if data_array[offset_to_lat] and  data_array[offset_to_lng] and data_array[confirmed_index]:
                                 self.parsed_lat_lng_lines[unique_key] = { 'lat': data_array[offset_to_lat], 
                                                                           'lng': data_array[offset_to_lng], 
-                                                                          'count': int(data_array[offset_to_confirmed])}
+                                                                          'count': int(data_array[confirmed_index])}
 
                 except IndexError:
                     pass
@@ -264,11 +280,6 @@ class DailyReportsParser(Parser):
         # needle_arrays = [['48453', 'Travis', 'Texas', 'US'],
         #                  ['48491', 'Williamson', 'Texas', 'US']]
         needle_arrays = []
-        num_lookup = {
-            'Confirmed': 7,
-            'Deaths': 8,
-            'Recovered': 9
-        }
         self.data_file
         with open(self.data_file, newline='') as csvfile:
             datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
@@ -284,7 +295,7 @@ class DailyReportsParser(Parser):
                             found_it = True
                     if found_it:
                         # What's its count
-                        offset_to_count = num_lookup[column]
+                        offset_to_count = self.CSV_LOOKUP_3232020[column]
                         if int(data_array[offset_to_count]) >= int(high_watermark):
                             needle_arrays.append([data_array[0], data_array[1], data_array[2], data_array[3]])
                 except IndexError:
