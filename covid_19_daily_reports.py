@@ -40,6 +40,7 @@ if __name__ == '__main__':
     # https://github.com/jsheffie/covid_19_data_parser/issues/1
     needle_arrays = [['48453', 'Travis', 'Texas', 'US'],
                      ['48491', 'Williamson', 'Texas', 'US'],
+                     ['48201', 'Harris', 'Texas', 'US'],
                      ['48113', 'Dallas', 'Texas', 'US'],
                      ['36059', 'Nassau', 'New York', 'US'],
                      ['36103', 'Suffolk', 'New York', 'US'],
