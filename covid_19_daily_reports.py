@@ -29,7 +29,8 @@ if __name__ == '__main__':
                   "03-27-2020",
                   "03-28-2020",
                   "03-29-2020",
-                  "03-30-2020"]
+                  "03-30-2020",
+                  "03-31-2020"]
 
     for date_str in date_range:
         filename = "{}/{}.csv".format(daily_data_dir, date_str)
