@@ -206,7 +206,7 @@ class DailyReportsParser(Parser):
                 try:
                     data_array = row[0].split(',')
                     found_it = True
-                    indexes = range(len(needle_array))
+                    indexes = range(1,len(needle_array)-1)  # skip the FIPS number ( some of the data is missing it )
                     for index in indexes:
                         if data_array[index] != needle_array[index]:
                             found_it = False
