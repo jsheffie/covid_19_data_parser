@@ -92,6 +92,7 @@ class Parser(object):
         self.data_file = filename
 
     def get_data(self, download_url, filename):
+        res_code = 0
         filename = self.sanitize_filename(filename)
         self.set_cachefile(filename)
         if not self.cached:
@@ -111,6 +112,8 @@ class Parser(object):
             else:
                 print("ERROR: {}".format(res_code))
                 print(data)
+
+        return res_code
 
     def sanitize_filename(self, filename):
         return '_'.join(filename.split(' '))
@@ -200,28 +203,31 @@ class DailyReportsParser(Parser):
         if len(self.parsed_lines) == 0:
             self.add_line()  # add the header line
 
-        with open(filename, newline='') as csvfile:
-            datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
-            for row in datareader:
-                try:
-                    data_array = row[0].split(',')
-                    found_it = True
-                    indexes = range(1,len(needle_array)-1)  # skip the FIPS number ( some of the data is missing it )
-                    for index in indexes:
-                        if data_array[index] != needle_array[index]:
-                            found_it = False
-                    if found_it:
-                        yesterdays_cnt = 0
-                        new_cases = 0
-                        multiplication_factor = 0
-                        if len(self.parsed_lines) > 1:
-                            yesterdays_cnt = self.parsed_lines[-1].split(',')[1]
-                            new_cases = self.calculate_new_cases(data_array[confirmed_index], yesterdays_cnt)
-                            multiplication_factor = self.calculate_multiplication_factor(data_array[confirmed_index], yesterdays_cnt)
-                        self.add_line(date_str, data_array[confirmed_index], data_array[deaths_index], data_array[recovered_index], data_array[active_index], new_cases, multiplication_factor)
+        if os.path.isfile(filename):
+            with open(filename, newline='') as csvfile:
+                datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
+                for row in datareader:
+                    try:
+                        data_array = row[0].split(',')
+                        found_it = True
+                        indexes = range(1,len(needle_array)-1)  # skip the FIPS number ( some of the data is missing it )
+                        for index in indexes:
+                            if data_array[index] != needle_array[index]:
+                                found_it = False
+                        if found_it:
+                            yesterdays_cnt = 0
+                            new_cases = 0
+                            multiplication_factor = 0
+                            if len(self.parsed_lines) > 1:
+                                yesterdays_cnt = self.parsed_lines[-1].split(',')[1]
+                                new_cases = self.calculate_new_cases(data_array[confirmed_index], yesterdays_cnt)
+                                multiplication_factor = self.calculate_multiplication_factor(data_array[confirmed_index], yesterdays_cnt)
+                            self.add_line(date_str, data_array[confirmed_index], data_array[deaths_index], data_array[recovered_index], data_array[active_index], new_cases, multiplication_factor)
 
-                except IndexError:
-                    pass
+                    except IndexError:
+                        pass
+        else:
+            print("Filename: {} Not found".format(filename))
 
     def parse_lat_long_counts(self, date_str, needle_array, filename):
         filename = self.sanitize_filename(filename)
@@ -281,23 +287,26 @@ class DailyReportsParser(Parser):
         #                  ['48491', 'Williamson', 'Texas', 'US']]
         needle_arrays = []
         self.data_file
-        with open(self.data_file, newline='') as csvfile:
-            datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
-            for row in datareader:
-                try:
-                    data_array = row[0].split(',')
-                    found_it = False
-                    if Province_State:  # the more detailed filter
-                        if data_array[3] == Country_Region and data_array[2] == Province_State:
-                            found_it = True
-                    else:
-                        if data_array[3] == Country_Region:
-                            found_it = True
-                    if found_it:
-                        # What's its count
-                        offset_to_count = self.CSV_LOOKUP_3232020[column]
-                        if int(data_array[offset_to_count]) >= int(high_watermark):
-                            needle_arrays.append([data_array[0], data_array[1], data_array[2], data_array[3]])
-                except IndexError:
-                    pass
+        if os.path.isfile(self.data_file):
+            with open(self.data_file, newline='') as csvfile:
+                datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
+                for row in datareader:
+                    try:
+                        data_array = row[0].split(',')
+                        found_it = False
+                        if Province_State:  # the more detailed filter
+                            if data_array[3] == Country_Region and data_array[2] == Province_State:
+                                found_it = True
+                        else:
+                            if data_array[3] == Country_Region:
+                                found_it = True
+                        if found_it:
+                            # What's its count
+                            offset_to_count = self.CSV_LOOKUP_3232020[column]
+                            if int(data_array[offset_to_count]) >= int(high_watermark):
+                                needle_arrays.append([data_array[0], data_array[1], data_array[2], data_array[3]])
+                    except IndexError:
+                        pass
+        else:
+            print("build_needle_array: Filename {} not found".format(self.data_file))
         return needle_arrays

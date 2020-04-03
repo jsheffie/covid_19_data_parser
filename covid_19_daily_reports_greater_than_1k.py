@@ -31,15 +31,27 @@ if __name__ == '__main__':
                   "03-29-2020",
                   "03-30-2020",
                   "03-31-2020",
-                  "04-01-2020"]
+                  "04-01-2020",
+                  "04-02-2020"]
+                  # "04-03-2020",
+                  # "04-04-2020",
+                  # "04-05-2020",
+                  # "04-06-2020",
+                  # "04-07-2020",
+                  # "04-08-2020",
+                  # "04-09-2020",
+                  # "04-10-2020",
+                  # "04-11-2020"]
 
+    # TODO: re-work a bit for genericy ( currently expect the last file downloaded to be the one ... does not handle no-downloaded file)
     for date_str in date_range:
         filename = "{}/{}.csv".format(daily_data_dir, date_str)
         download_url = "{}/{}.csv".format(base_url, date_str)
-        daily_parser.get_data(download_url, filename)
-        if date_str == date_range[-1]:
-            # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
-            needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
+        res_code = daily_parser.get_data(download_url, filename)
+        if res_code == 200:
+          if date_str == date_range[-1]:
+              # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
+              needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
 
     for needle_array in needle_arrays:
         daily_parser = DailyReportsParser()
