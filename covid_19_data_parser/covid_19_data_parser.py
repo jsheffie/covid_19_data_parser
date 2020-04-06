@@ -191,7 +191,10 @@ class DailyReportsParser(Parser):
         return int(today_cnt) - int(yesterday_cnt)
 
     def calculate_multiplication_factor(self, today_cnt, yesterday_cnt):
-        return int(today_cnt) / int(yesterday_cnt)
+        if int(yesterday_cnt) > 0:
+            return int(today_cnt) / int(yesterday_cnt)
+        else:
+            return 0
 
     def parse(self, date_str, needle_array, filename):
         """ needle_array is the thing we are looking for """

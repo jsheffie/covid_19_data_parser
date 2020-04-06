@@ -33,9 +33,9 @@ if __name__ == '__main__':
                   "03-31-2020",
                   "04-01-2020",
                   "04-02-2020",
-                  "04-03-2020"]
-                  # "04-04-2020",
-                  # "04-05-2020",
+                  "04-03-2020",
+                  "04-04-2020",
+                  "04-05-2020"]
                   # "04-06-2020",
                   # "04-07-2020",
                   # "04-08-2020",
@@ -52,6 +52,11 @@ if __name__ == '__main__':
           if date_str == date_range[-1]:
               # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
               needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
+
+    if not ['48453', 'Travis', 'Texas', 'US'] in needle_arrays:
+      needle_arrays.append(['48453', 'Travis', 'Texas', 'US'])
+    if not ['48491', 'Williamson', 'Texas', 'US'] in needle_arrays:
+      needle_arrays.append(['48491', 'Williamson', 'Texas', 'US'])
 
     for needle_array in needle_arrays:
         daily_parser = DailyReportsParser()
