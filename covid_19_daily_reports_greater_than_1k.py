@@ -29,15 +29,16 @@ if __name__ == '__main__':
         day = start_date + timedelta(days=i)
         date_range.append("{:02d}-{:02d}-{:4d}".format(day.month, day.day, day.year))
 
-    # TODO: re-work a bit for genericy ( currently expect the last file downloaded to be the one ... does not handle no-downloaded file)
+    # print(date_range)
+    # # TODO: re-work a bit for genericy ( currently expect the last file downloaded to be the one ... does not handle no-downloaded file)
     for date_str in date_range:
         filename = "{}/{}.csv".format(daily_data_dir, date_str)
         download_url = "{}/{}.csv".format(base_url, date_str)
         res_code = daily_parser.get_data(download_url, filename)
         # if res_code == 200:
-        if date_str == date_range[-1]:
-          # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
-          needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
+
+    # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
+    needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
 
     if not ['48453', 'Travis', 'Texas', 'US'] in needle_arrays:
       needle_arrays.append(['48453', 'Travis', 'Texas', 'US'])
