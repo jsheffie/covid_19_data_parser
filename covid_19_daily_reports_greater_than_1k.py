@@ -2,6 +2,7 @@
 
 import os
 import sys
+from datetime import date, timedelta
 
 # look for libraries that are configured by './build.sh'
 cwd = os.getcwd()
@@ -20,38 +21,23 @@ if __name__ == '__main__':
 
     daily_parser = DailyReportsParser()
 
-    # TODO: make this fancy with datetime, and calendar later.. or not
-    date_range = ["03-22-2020",  # New Data Format ( more detailed data )
-                  "03-23-2020",
-                  "03-24-2020",
-                  "03-25-2020",
-                  "03-26-2020",
-                  "03-27-2020",
-                  "03-28-2020",
-                  "03-29-2020",
-                  "03-30-2020",
-                  "03-31-2020",
-                  "04-01-2020",
-                  "04-02-2020",
-                  "04-03-2020",
-                  "04-04-2020",
-                  "04-05-2020"]
-                  # "04-06-2020",
-                  # "04-07-2020",
-                  # "04-08-2020",
-                  # "04-09-2020",
-                  # "04-10-2020",
-                  # "04-11-2020"]
+    start_date = date(2020,3,22) # This is the day that the 'New Data Format' started for more detailed data.
+    todays_date = date.today()
+    delta = todays_date - start_date
+    date_range = []
+    for i in range(delta.days + 1):
+        day = start_date + timedelta(days=i)
+        date_range.append("{:02d}-{:02d}-{:4d}".format(day.month, day.day, day.year))
 
     # TODO: re-work a bit for genericy ( currently expect the last file downloaded to be the one ... does not handle no-downloaded file)
     for date_str in date_range:
         filename = "{}/{}.csv".format(daily_data_dir, date_str)
         download_url = "{}/{}.csv".format(base_url, date_str)
         res_code = daily_parser.get_data(download_url, filename)
-        if res_code == 200:
-          if date_str == date_range[-1]:
-              # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
-              needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
+        # if res_code == 200:
+        if date_str == date_range[-1]:
+          # grab the latest day, and build up a needle array of any cases of more than 1k 'Confirmed'
+          needle_arrays = daily_parser.build_needle_array(Country_Region='US', column='Confirmed', high_watermark=1000)
 
     if not ['48453', 'Travis', 'Texas', 'US'] in needle_arrays:
       needle_arrays.append(['48453', 'Travis', 'Texas', 'US'])

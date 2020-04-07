@@ -16,7 +16,7 @@ COVID 19 Data Parser
 
 
 
-A utility to parse the COVID 19 data from Johns Hopkins
+A utility to parse the COVID 19 data from [Johns Hopkins](https://github.com/CSSEGISandData/COVID-19)
 
 
 * Free software: MIT license
