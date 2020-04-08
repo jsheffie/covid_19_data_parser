@@ -6,6 +6,7 @@ import os
 
 import requests
 import json
+from datetime import datetime
 
 class Client(object):
     """
@@ -88,19 +89,36 @@ class Parser(object):
 
         return False
 
+    def update_csv_file(self, filename, lines):
+        """
+        A thin wrapper to write_csv_file
+        """
+        if os.path.isfile(filename):
+            os.unlink(filename)
+        data = ""
+        for line in lines:
+            data += "{}\n".format(line)
+
+        self.write_csv_file(filename, data)
+
+
     def set_cachefile(self, filename):
-        self.data_file = filename
+        if os.path.isfile(filename):
+            self.data_file = filename
+            return True
+
+        return False
 
     def get_data(self, download_url, filename):
-        res_code = 0
+        res_code = 100
         filename = self.sanitize_filename(filename)
-        self.set_cachefile(filename)
+        file_exists = self.set_cachefile(filename)
         if not self.cached:
             # Force-refetching
             if os.path.isfile(filename):
                 os.unlink(filename)
 
-        if not self.cached_csv():
+        if not file_exists:
             print("Fetching csv file from {}".format(filename))
             self.client = Client()
             (res_code, data) = self.client.get(download_url)
@@ -108,6 +126,7 @@ class Parser(object):
                 print("Successfully Downloaded data {}".format(len(data)))
                 res = self.write_csv_file(filename, data)
                 if res:
+                    self.set_cachefile(filename)
                     print("Successfully Wrote datafile {}".format(filename))
             else:
                 print("ERROR: {}".format(res_code))
@@ -147,7 +166,8 @@ class TimeSeriesParser(Parser):
             filename = '{}/{}.csv'.format(self.data_directory, country_region)
             for row in datareader:
                 if cnt == 0:
-                    final_csv_data = "date,count,new cases,multiplication factor\n"
+                    final_csv_data = "date,count,new_cases,multiplication_factor\n"
+                    # final_csv_data = "date,count,new_cases\n"
                     header_row = row[0].split(',')
                 else:
                     try:
@@ -160,6 +180,8 @@ class TimeSeriesParser(Parser):
                                 new_cases = self.calculate_new_cases(data_array, index, index - 1, index_range[0])
                                 multiplication_factor = self.calculate_multiplication_factor(data_array, index, index - 1, index_range[0])
                                 final_csv_data += "{}-{:02d}-{:02d},{},+{},{:.3f}\n".format("2020", month, day, data_array[index], new_cases, multiplication_factor)
+                                # final_csv_data += "{}-{:02d}-{:02d},{}\n".format("2020", month, day, data_array[index])
+                                # final_csv_data += "{},{},+{},{:.3f}\n".format(datetime(2020, month, day).isoformat(), data_array[index], new_cases, multiplication_factor)
                     except IndexError:
                         pass
                 cnt += 1
@@ -289,7 +311,7 @@ class DailyReportsParser(Parser):
         # needle_arrays = [['48453', 'Travis', 'Texas', 'US'],
         #                  ['48491', 'Williamson', 'Texas', 'US']]
         needle_arrays = []
-        self.data_file
+        # self.data_file
         if os.path.isfile(self.data_file):
             with open(self.data_file, newline='') as csvfile:
                 datareader = csv.reader(csvfile, delimiter='+', quotechar='|')
@@ -313,3 +335,4 @@ class DailyReportsParser(Parser):
         else:
             print("build_needle_array: Filename {} not found".format(self.data_file))
         return needle_arrays
+
