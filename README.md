@@ -6,10 +6,6 @@ Some visualizations of this output over here:
 <a href="https://observablehq.com/collection/@jsheffie/covid-19">Covid-19 collection</a>
 <a href="https://observablehq.com/collection/@jsheffie/covid-19"><img src="images/Screen_Sheet_d3_charts.png" height=400></a>
 
-* Free software: MIT license
-* Documentation: https://covid-19-data-parser.readthedocs.io.
-
-
 Features
 --------
 
