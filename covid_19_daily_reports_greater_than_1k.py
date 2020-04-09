@@ -48,6 +48,8 @@ if __name__ == '__main__':
       needle_arrays.append(['48453', 'Travis', 'Texas', 'US'])
     if not ['48491', 'Williamson', 'Texas', 'US'] in needle_arrays:
       needle_arrays.append(['48491', 'Williamson', 'Texas', 'US'])
+    if not ['25015', 'Hampshire', 'Massachusetts', 'US'] in needle_arrays:
+      needle_arrays.append(['25015', 'Hampshire', 'Massachusetts', 'US'])
 
     cumlutive_data_confirmed = ['name,'+','.join(downloaded_date_range)]
     cumlutive_data_confirmed_no_ny = ['name,'+','.join(downloaded_date_range)]

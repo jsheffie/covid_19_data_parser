@@ -16,7 +16,7 @@ from covid_19_data_parser import TimeSeriesParser
 
 if __name__ == '__main__':
     download_url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
-    filename = 'downloads/confirmed_global_data.csv'
+    filename = 'daily_data/confirmed_global_data.csv'
     ts_parser = TimeSeriesParser(use_cachfile=False)
     ts_parser.get_data(download_url, filename)
 

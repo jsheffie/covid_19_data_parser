@@ -117,6 +117,7 @@ class Parser(object):
             # Force-refetching
             if os.path.isfile(filename):
                 os.unlink(filename)
+                file_exists = False
 
         if not file_exists:
             print("Fetching csv file from {}".format(filename))
