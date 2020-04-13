@@ -56,7 +56,10 @@ if __name__ == '__main__':
     cumlutive_data_new_cases = ['name,'+','.join(downloaded_date_range)]
     cumlutive_data_new_cases_no_ny = ['name,'+','.join(downloaded_date_range)]
 
-    cumlutive_data_combined = ['name,'+','.join(downloaded_date_range)]  # confirmed - (deaths + recovered )
+    # Well crap the death's and recoverd data is not in the daily data ~~ sigh ~~
+    # cumlutive_data_combined = ['name,'+','.join(downloaded_date_range)]  # confirmed - (deaths + recovered )
+    cumlutive_data_deaths = ['name,'+','.join(downloaded_date_range)]
+    cumlutive_data_deaths_no_ny = ['name,'+','.join(downloaded_date_range)]
 
     for needle_array in needle_arrays:
         daily_parser = DailyReportsParser()
@@ -69,14 +72,17 @@ if __name__ == '__main__':
 
         new_line=needle_array[1]+" "+needle_array[2]+","+",".join([i.split(",")[1] for i in daily_parser.parsed_lines[1:]])  # so much magic ( this is confirmed cases )
         new_line_nc=needle_array[1]+" "+needle_array[2]+","+",".join([i.split(",")[5] for i in daily_parser.parsed_lines[1:]])  # so much magic ( this is new cases i.e. +increase )
-        new_line_combined=needle_array[1]+" "+needle_array[2]+","+",".join([str(int(i.split(",")[1]) - (int(i.split(",")[2])+ int(i.split(",")[3]))) for i in daily_parser.parsed_lines[1:]])  # so much magic (  )
+        # new_line_combined=needle_array[1]+" "+needle_array[2]+","+",".join([str(int(i.split(",")[1]) - (int(i.split(",")[2])+ int(i.split(",")[3]))) for i in daily_parser.parsed_lines[1:]])  # so much magic (  )
+        new_line_deaths=needle_array[1]+" "+needle_array[2]+","+",".join([i.split(",")[2] for i in daily_parser.parsed_lines[1:]])  # so much magic (  )
         cumlutive_data_confirmed.append(new_line)
         cumlutive_data_new_cases.append(new_line_nc)
-        cumlutive_data_combined.append(new_line_combined)
+        # cumlutive_data_combined.append(new_line_combined)
+        cumlutive_data_deaths.append(new_line_deaths)
 
         if 'new york' not in needle_array[2].lower():
             cumlutive_data_confirmed_no_ny.append(new_line)
             cumlutive_data_new_cases_no_ny.append(new_line_nc)
+            cumlutive_data_deaths_no_ny.append(new_line_deaths)
 
     covid_csv_file = "{}/observablehq_covid_19_confirmed.csv".format(daily_parser.data_directory)
     daily_parser.update_csv_file(covid_csv_file, cumlutive_data_confirmed)
@@ -90,5 +96,11 @@ if __name__ == '__main__':
     covid_csv_file = "{}/observablehq_covid_19_new_cases_no_new_york.csv".format(daily_parser.data_directory)
     daily_parser.update_csv_file(covid_csv_file, cumlutive_data_new_cases_no_ny)
 
-    covid_csv_file = "{}/observablehq_covid_19_confirmed-deaths_plus_recovered.csv".format(daily_parser.data_directory)
-    daily_parser.update_csv_file(covid_csv_file, cumlutive_data_combined)
+    # covid_csv_file = "{}/observablehq_covid_19_confirmed-deaths_plus_recovered.csv".format(daily_parser.data_directory)
+    # daily_parser.update_csv_file(covid_csv_file, cumlutive_data_combined)
+
+    covid_csv_file = "{}/observablehq_covid_19_deaths.csv".format(daily_parser.data_directory)
+    daily_parser.update_csv_file(covid_csv_file, cumlutive_data_deaths)
+
+    covid_csv_file = "{}/observablehq_covid_19_deaths_no_ny.csv".format(daily_parser.data_directory)
+    daily_parser.update_csv_file(covid_csv_file, cumlutive_data_deaths_no_ny)
