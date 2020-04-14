@@ -53,6 +53,7 @@ if __name__ == '__main__':
 
     cumlutive_data_confirmed = ['name,'+','.join(downloaded_date_range)]
     cumlutive_data_confirmed_no_ny = ['name,'+','.join(downloaded_date_range)]
+    cumlutive_data_confirmed_just_texas = ['name,'+','.join(downloaded_date_range)]
     cumlutive_data_new_cases = ['name,'+','.join(downloaded_date_range)]
     cumlutive_data_new_cases_no_ny = ['name,'+','.join(downloaded_date_range)]
 
@@ -84,11 +85,17 @@ if __name__ == '__main__':
             cumlutive_data_new_cases_no_ny.append(new_line_nc)
             cumlutive_data_deaths_no_ny.append(new_line_deaths)
 
+        if 'texas' in needle_array[2].lower():
+            cumlutive_data_confirmed_just_texas.append(new_line)
+
     covid_csv_file = "{}/observablehq_covid_19_confirmed.csv".format(daily_parser.data_directory)
     daily_parser.update_csv_file(covid_csv_file, cumlutive_data_confirmed)
 
     covid_csv_file = "{}/observablehq_covid_19_confirmed_no_ny.csv".format(daily_parser.data_directory)
     daily_parser.update_csv_file(covid_csv_file, cumlutive_data_confirmed_no_ny)
+
+    covid_csv_file = "{}/observablehq_covid_19_confirmed_texas.csv".format(daily_parser.data_directory)
+    daily_parser.update_csv_file(covid_csv_file, cumlutive_data_confirmed_just_texas)
 
     covid_csv_file = "{}/observablehq_covid_19_new_cases.csv".format(daily_parser.data_directory)
     daily_parser.update_csv_file(covid_csv_file, cumlutive_data_new_cases)
