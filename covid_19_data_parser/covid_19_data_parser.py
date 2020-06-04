@@ -66,7 +66,9 @@ class Parser(object):
             'Deaths': 8,
             'Recovered': 9,
             'Active': 10,
-            'Combined_Key': 11
+            'Combined_Key': 11,
+            'Incidence_Rate': 12,
+            'Case-Fatality_Ratio': 13
         }
 
     def makedirs(self, filename):
